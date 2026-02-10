@@ -12,11 +12,13 @@ object ErkmoAnalytics {
     private var siteId: String = ""
     private var apiUrl: String = "https://t.erkmo.com/track"
     private var sessionId: String = ""
-    private const val sdkVersion = "android-0.1"
+    private var kidsMode: Boolean = false
+    private const val sdkVersion = "android-0.1.1"
 
-    fun init(context: Context, siteId: String, apiUrl: String = "https://t.erkmo.com/track") {
+    fun init(context: Context, siteId: String, apiUrl: String = "https://t.erkmo.com/track", kidsMode: Boolean = false) {
         this.siteId = siteId
         this.apiUrl = apiUrl
+        this.kidsMode = kidsMode
         this.sessionId = loadOrCreateSessionId(context)
     }
 
@@ -41,12 +43,16 @@ object ErkmoAnalytics {
         payload.put("app_id", context.packageName)
         payload.put("app_version", context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.0.0")
         payload.put("app_build", context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode.toString())
-        payload.put("device_id", Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: UUID.randomUUID().toString())
+        val deviceId = if (kidsMode) "" else (Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: UUID.randomUUID().toString())
+        payload.put("device_id", deviceId)
         if (!screenName.isNullOrBlank()) payload.put("screen_name", screenName)
 
         val props = JSONObject()
         for ((k, v) in properties) {
             props.put(k, v)
+        }
+        if (kidsMode) {
+            props.put("kids_mode", true)
         }
         payload.put("properties", props)
 

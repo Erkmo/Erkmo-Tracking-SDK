@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.erkmo"
-version = "0.1.0"
+version = "0.1.1"
 
 android {
     namespace = "com.erkmo.analytics"

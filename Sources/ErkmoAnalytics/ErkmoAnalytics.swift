@@ -7,13 +7,15 @@ public final class ErkmoAnalytics {
     private var siteId: String = ""
     private var apiUrl: String = "https://t.erkmo.com/track"
     private var sessionId: String = ""
-    private let sdkVersion = "ios-0.1"
+    private var kidsMode: Bool = false
+    private let sdkVersion = "ios-0.1.1"
 
     private init() {}
 
-    public func configure(siteId: String, apiUrl: String = "https://t.erkmo.com/track") {
+    public func configure(siteId: String, apiUrl: String = "https://t.erkmo.com/track", kidsMode: Bool = false) {
         self.siteId = siteId
         self.apiUrl = apiUrl
+        self.kidsMode = kidsMode
         self.sessionId = ErkmoAnalytics.loadOrCreateSessionId()
     }
 
@@ -39,11 +41,15 @@ public final class ErkmoAnalytics {
             "app_id": Bundle.main.bundleIdentifier ?? "unknown",
             "app_version": Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0",
             "app_build": Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0",
-            "device_id": UIDevice.current.identifierForVendor?.uuidString ?? "",
+            "device_id": kidsMode ? "" : (UIDevice.current.identifierForVendor?.uuidString ?? ""),
             "screen_name": screenName ?? ""
         ]
 
-        payload["properties"] = properties
+        var mergedProps = properties
+        if kidsMode {
+            mergedProps["kids_mode"] = true
+        }
+        payload["properties"] = mergedProps
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
